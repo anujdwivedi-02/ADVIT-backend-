@@ -1,32 +1,37 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cors = require("cors");
 
 dotenv.config();
 
 const app = express();
 
-/* =========================
-   🔥 FORCE CORS (NODE 22 SAFE)
-   ========================= */
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://trustpoint.in");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
+const allowedOrigins = [
+  "https://trustpoint.in",
+  "https://www.trustpoint.in",
+  "http://localhost:3000",
+];
 
-  // ⚠️ NO app.options("*") in Node 22
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server and tools like curl / Postman
+      if (!origin) return callback(null, true);
 
-  next();
-});
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.warn("❌ Blocked CORS origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Enable cookies / auth headers if needed
+    optionsSuccessStatus: 204,
+  })
+);
 
 /* =========================
    BODY PARSERS
