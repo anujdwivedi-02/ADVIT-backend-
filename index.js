@@ -8,20 +8,31 @@ dotenv.config();
 const app = express();
 
 /* =========================
-   ✅ CORS CONFIG (FIXED)
+   ✅ CORS CONFIG (FINAL)
    ========================= */
+const allowedOrigins = [
+  "https://trustpoint.in",
+  "http://localhost:5173",
+  "http://localhost:5174"
+];
+
 app.use(cors({
-  origin: [
-    "https://trustpoint.in",          // ✅ LIVE FRONTEND
-    "http://localhost:5173",
-    "http://localhost:5174"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
+  origin: function (origin, callback) {
+    // allow Postman / server-to-server requests
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// 👇 important for preflight requests
+// ✅ Preflight support
 app.options("*", cors());
 
 /* =========================
@@ -45,7 +56,7 @@ app.use("/users", userRoutes);
 mongoose
   .connect(process.env.MONGO_CONN)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.log("❌ MongoDB error:", err));
+  .catch((err) => console.error("❌ MongoDB error:", err));
 
 /* =========================
    ✅ SERVER START
