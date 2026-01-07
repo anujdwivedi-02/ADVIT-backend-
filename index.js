@@ -1,48 +1,42 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const cors = require("cors");
 
 dotenv.config();
 
 const app = express();
 
 /* =========================
-   ✅ CORS CONFIG (FINAL)
+   🔥 FORCE CORS HEADERS
    ========================= */
-const allowedOrigins = [
-  "https://trustpoint.in",
-  "http://localhost:5173",
-  "http://localhost:5174"
-];
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://trustpoint.in");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // allow Postman / server-to-server requests
-    if (!origin) return callback(null, true);
+  // Handle preflight
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-// ✅ Preflight support
-app.options("*", cors());
+  next();
+});
 
 /* =========================
-   ✅ BODY PARSERS
+   BODY PARSERS
    ========================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* =========================
-   ✅ ROUTES
+   ROUTES
    ========================= */
 const authRoutes = require("./Routes/authRouter");
 const userRoutes = require("./Routes/userRouter");
@@ -51,7 +45,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 
 /* =========================
-   ✅ MONGODB CONNECTION
+   MONGODB
    ========================= */
 mongoose
   .connect(process.env.MONGO_CONN)
@@ -59,7 +53,7 @@ mongoose
   .catch((err) => console.error("❌ MongoDB error:", err));
 
 /* =========================
-   ✅ SERVER START
+   SERVER
    ========================= */
 const PORT = process.env.PORT || 3002;
 
