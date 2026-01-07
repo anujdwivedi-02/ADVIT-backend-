@@ -7,21 +7,20 @@ dotenv.config();
 const app = express();
 
 /* =========================
-   🔥 FORCE CORS HEADERS
+   🔥 FORCE CORS (NODE 22 SAFE)
    ========================= */
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://trustpoint.in");
-  res.header(
+  res.setHeader("Access-Control-Allow-Origin", "https://trustpoint.in");
+  res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    "GET, POST, PUT, PATCH, DELETE"
   );
-  res.header(
+  res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization"
   );
-  res.header("Access-Control-Allow-Credentials", "true");
 
-  // Handle preflight
+  // ⚠️ NO app.options("*") in Node 22
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
   }
